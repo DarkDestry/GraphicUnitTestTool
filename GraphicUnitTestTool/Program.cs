@@ -40,36 +40,68 @@ namespace GraphicUnitTestTool
 			}
 
 
-			Bitmap output = CompareAndOutput(img1, img2);
 
-			output.Save(outputpath);
+			//Execute Comparison
+			ComparisonReport report = CompareAndOutput(img1, img2);
+			string html = GenerateHTMLReport(img1path, img2path, outputpath, report);
 
-			string html = GenerateHTMLReport(img1path, img2path, outputpath);
-
+			//Dump comparison output
+			report.output.Save(outputpath);
 			File.WriteAllText(outputpath+".html", html);
-			
 		}
 
-		private static string GenerateHTMLReport(string img1path, string img2path, string outputpath)
+		private static string GenerateHTMLReport(string img1path, string img2path, string outputpath, ComparisonReport report)
 		{
 			string html = "<body>";
 
 			html += $"<div style='width: 33.33%;display: inline-block;'><img src='{img1path}' style='width: 100%; height: auto'></div>";
 			html += $"<div style='width: 33.33%;display: inline-block;'><img src='{outputpath}' style='width: 100%; height: auto'></div>";
 			html += $"<div style='width: 33.33%;display: inline-block;'><img src='{img2path}' style='width: 100%; height: auto'></div>";
+			html += $"<div>" +
+			        $"<p>&Delta;E is the perceivable difference in color. A &Delta;E of 0 is mathematically exact. A &Delta;E of 1.0 to 2.0 is just noticeable.</p>" +
+			        $"<table style='width:20em'>" +
+			        $"<tr>" +
+			        $"<td>Maximum &Delta;E</td>" +
+			        $"<td>{report.maxDeltaE}</td>" +
+			        $"</tr>" +
+			        $"<tr>" +
+			        $"<td>Minimum &Delta;E</td>" +
+			        $"<td>{report.minDeltaE}</td>" +
+			        $"</tr>" +
+			        $"<tr>" +
+			        $"<td>Average &Delta;E</td>" +
+			        $"<td>{report.avgDeltaE}</td>" +
+			        $"</tr>" +
+			        $"</table></div>";
 
 			html += "</body>";
 			return html;
 		}
 
-		public static Bitmap CompareAndOutput(Bitmap img1, Bitmap img2)
+		public static ComparisonReport CompareAndOutput(Bitmap img1, Bitmap img2)
 		{
 			Bitmap output = new Bitmap(img1.Width, img1.Height);
+			float maxDeltaE = float.MinValue;
+			float minDeltaE = float.MaxValue;
+			float totalDeltaE = 0;
+			float deltaEValues = 0;
+			float avgDeltaE = 0;
 
 			for (int x = 0; x < img1.Width; x++)
 			{
 				for (int y = 0; y < img1.Height; y++)
 				{
+					Color pixel1 = img1.GetPixel(x,y);
+					Color pixel2 = img2.GetPixel(x,y);
+					ColorFormulas cf1 = new ColorFormulas(pixel1.R, pixel1.G, pixel1.B);
+					ColorFormulas cf2 = new ColorFormulas(pixel2.R, pixel2.G, pixel2.B);
+					float deltaE = (cf1.CompareTo(cf2));
+
+					if (minDeltaE > deltaE) minDeltaE = deltaE;
+					if (maxDeltaE < deltaE) maxDeltaE = deltaE;
+					totalDeltaE += deltaE;
+					deltaEValues++;
+
 					if (img1.GetPixel(x,y) == img2.GetPixel(x,y))
 					{
 						Color pixel = img1.GetPixel(x, y);
@@ -82,7 +114,9 @@ namespace GraphicUnitTestTool
 				}
 			}
 
-			return output;
+			avgDeltaE = totalDeltaE / deltaEValues;
+
+			return new ComparisonReport(output,maxDeltaE,minDeltaE,avgDeltaE);
 		}
 
 		public static void PrintHelp()
@@ -131,6 +165,22 @@ namespace GraphicUnitTestTool
 				return Color.FromArgb(255, t, p, v);
 			else
 				return Color.FromArgb(255, v, p, q);
+		}
+
+		public class ComparisonReport
+		{
+			public Bitmap output;
+			public float maxDeltaE;
+			public float minDeltaE;
+			public float avgDeltaE;
+
+			public ComparisonReport(Bitmap output, float maxDeltaE, float minDeltaE, float avgDeltaE)
+			{
+				this.output = output;
+				this.maxDeltaE = maxDeltaE;
+				this.minDeltaE = minDeltaE;
+				this.avgDeltaE = avgDeltaE;
+			}
 		}
 	}
 }
