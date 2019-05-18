@@ -51,6 +51,7 @@ namespace GraphicUnitTestTool
 			if (img1.Height != img2.Height || img1.Width != img2.Width)
 			{
 				Console.WriteLine("Input images are of different width and height. Unable to compare");
+				return;
 			}
 
 
@@ -137,11 +138,12 @@ namespace GraphicUnitTestTool
 		{
 			string filename = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
 			filename = Path.GetFileName(filename);
-			Console.WriteLine("-----------------------------------------------------------------------------------");
+			Console.WriteLine("");
 			Console.WriteLine("===== Graphic Unit Test Tool =====\n" +
 			                  "This tool compares two images and highlights the changed pixels in an output file.\n");
 
 			Console.WriteLine("Usage: " + filename + " pathToImg1 pathToImg2 outputPath [options]");
+			Console.WriteLine("Example: " + filename + " .\\img1.png .\\img2.png .\\img3.png --tolerance=1.5");
 			Console.WriteLine("");
 			Console.WriteLine("===== Arguments =====");
 			Console.WriteLine("pathToImg1        | Left side image path");
@@ -149,8 +151,7 @@ namespace GraphicUnitTestTool
 			Console.WriteLine("outputPath        | Image path to output the highlighted difference");
 			Console.WriteLine("");
 			Console.WriteLine("===== Options =====");
-			Console.WriteLine("--tolerance=value | Sets a deltaE tolerance for flagging out pixel changes");
-			Console.WriteLine("-----------------------------------------------------------------------------------");
+			Console.WriteLine("--tolerance=value | Sets a deltaE tolerance for highlighting out pixel changes");
 		}
 
 
