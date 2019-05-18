@@ -15,6 +15,20 @@ namespace GraphicUnitTestTool
 				PrintHelp();
 				return;
 			}
+
+			//CHECK for OPTIONS 
+			float tolerance = 0;
+			foreach (var s in args)
+			{
+				if (s.Contains("--tolerance="))
+				{
+					if (!float.TryParse(s.Substring(12), out tolerance))
+					{
+						Console.WriteLine("Invalid tolerance value.");
+						return;
+					}
+				}
+			}
 			
 
 			//CHECK if path is valid
@@ -27,7 +41,7 @@ namespace GraphicUnitTestTool
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine(e);
+				Console.WriteLine("Invalid Image Paths provided");
 				throw;
 			}
 
@@ -42,7 +56,7 @@ namespace GraphicUnitTestTool
 
 
 			//Execute Comparison
-			ComparisonReport report = CompareAndOutput(img1, img2);
+			ComparisonReport report = CompareImages(img1, img2, tolerance);
 			string html = GenerateHTMLReport(img1path, img2path, outputpath, report);
 
 			//Dump comparison output
@@ -78,7 +92,7 @@ namespace GraphicUnitTestTool
 			return html;
 		}
 
-		public static ComparisonReport CompareAndOutput(Bitmap img1, Bitmap img2)
+		public static ComparisonReport CompareImages(Bitmap img1, Bitmap img2, float tolerance = 0)
 		{
 			Bitmap output = new Bitmap(img1.Width, img1.Height);
 			float maxDeltaE = float.MinValue;
@@ -102,7 +116,7 @@ namespace GraphicUnitTestTool
 					totalDeltaE += deltaE;
 					deltaEValues++;
 
-					if (img1.GetPixel(x,y) == img2.GetPixel(x,y))
+					if (deltaE <= tolerance)
 					{
 						Color pixel = img1.GetPixel(x, y);
 						double h, s, v;
@@ -123,12 +137,20 @@ namespace GraphicUnitTestTool
 		{
 			string filename = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
 			filename = Path.GetFileName(filename);
-			Console.WriteLine("Graphic Unit Test Tool\n" +
+			Console.WriteLine("-----------------------------------------------------------------------------------");
+			Console.WriteLine("===== Graphic Unit Test Tool =====\n" +
 			                  "This tool compares two images and highlights the changed pixels in an output file.\n");
 
 			Console.WriteLine("Usage: " + filename + " pathToImg1 pathToImg2 outputPath [options]");
-			Console.WriteLine("Options:");
-			//Console.WriteLine("--tolerance=value | Sets a deltaE tolerance for flagging out pixel changes");
+			Console.WriteLine("");
+			Console.WriteLine("===== Arguments =====");
+			Console.WriteLine("pathToImg1        | Left side image path");
+			Console.WriteLine("pathToImg2        | Right side image path");
+			Console.WriteLine("outputPath        | Image path to output the highlighted difference");
+			Console.WriteLine("");
+			Console.WriteLine("===== Options =====");
+			Console.WriteLine("--tolerance=value | Sets a deltaE tolerance for flagging out pixel changes");
+			Console.WriteLine("-----------------------------------------------------------------------------------");
 		}
 
 
