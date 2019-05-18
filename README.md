@@ -17,3 +17,6 @@ outputPath        | Image path to output the highlighted difference
 --tolerance=value | Sets a deltaE tolerance for flagging out pixel changes
 -----------------------------------------------------------------------------------
 ```
+
+## HTML output
+![output image](https://i.imgur.com/I8oxN5T.png)
